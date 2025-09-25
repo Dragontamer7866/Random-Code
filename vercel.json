@@ -1,8 +1,20 @@
 {
-  "rewrites": [
+  "functions": {
+    "api/php/**/*.php": {
+      "runtime": "vercel-php@0.6.0"
+    },
+    "api/index.js": {
+      "runtime": "@vercel/node"
+    }
+  },
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api"
+      "src": "/api/php/(.*)",
+      "dest": "/api/php/$1"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/index.js"
     }
   ]
 }
