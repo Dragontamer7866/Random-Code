@@ -4,18 +4,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const usernameInput = document.getElementById('username');
     const messageInput = document.getElementById('message-input');
 
-    // Check for a stored username on page load
     const storedUsername = localStorage.getItem('username');
     if (storedUsername) {
         usernameInput.value = storedUsername;
-        usernameInput.readOnly = true; // Make the field read-only
-        messageInput.focus(); // Move focus to the message input
+        usernameInput.readOnly = true;
+        messageInput.focus();
     }
 
-    // Function to fetch and display messages (no change needed here)
     const fetchMessages = () => {
+        // Fetch from the single Node.js API endpoint
         fetch('/api')
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(messages => {
                 chatbox.innerHTML = '';
                 messages.forEach(msg => {
@@ -25,34 +29,39 @@ document.addEventListener('DOMContentLoaded', () => {
                     chatbox.appendChild(messageElement);
                 });
                 chatbox.scrollTop = chatbox.scrollHeight;
-            });
+            })
+            .catch(error => console.error('Error fetching messages:', error));
     };
 
-    // Function to handle form submission
     messageForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        
+
         const username = usernameInput.value;
         const message = messageInput.value;
 
         if (username && message) {
-            // Save username to localStorage if it's the first time
             if (!storedUsername) {
                 localStorage.setItem('username', username);
             }
 
-            fetch('/api', {
+            fetch('/api', { // Post to the single Node.js API endpoint
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, message })
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.status === 'success') {
                     messageInput.value = '';
                     fetchMessages();
                 }
-            });
+            })
+            .catch(error => console.error('Error sending message:', error));
         }
     });
 
